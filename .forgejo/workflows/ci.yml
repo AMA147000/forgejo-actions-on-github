@@ -1,0 +1,46 @@
+name: Test
+
+on:
+  push:
+  schedule:
+  - cron: "0 0 * * *" # every day
+  workflow_dispatch:
+
+jobs:
+  echo-test:
+    runs-on: gh-ubuntu-latest
+
+    steps:
+    - run: echo "echo test successful!"
+
+  cache-save-test:
+    runs-on: gh-ubuntu-latest
+
+    steps:
+      - name: Write test text to test.txt
+        run: echo ${{ github.run_id }} > ./test.txt
+
+      - name: Save test.txt cache
+        uses: actions/cache/save@v6
+        with:
+          path: ./test.txt
+          key: test-cache-${{ github.run_id }}
+
+  cache-restore-test:
+    runs-on: gh-ubuntu-latest
+    needs: cache-save-test
+
+    steps:
+      - name: Restore test.txt cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ./test.txt
+          key: test-cache-${{ github.run_id }}
+
+      - name: Read test.txt test text
+        run: |
+          if [ "$(cat ./test.txt)" != "${{ github.run_id }}" ]; then
+              echo "cache test failed"
+              exit 1
+          fi
+          echo "cache successfully restored and verified!"

@@ -1,0 +1,11 @@
+# Forgejo Actions on GitHub
+A sort of starting template for me, and a tutorial for anyone seeing this on how to run Forgejo actions on GitHub runners since GH provides unlimited minutes for open source projects and Codeberg, understandably so, cannot keep with what Microsoft can offer.
+
+Of course this method is not perfect as if for example the Forgejo action was called on a PR or dispatched manually, the GH runner will require manual dispatching or waiting for the cron schedule, but it is better than nothing.
+
+# Steps
+1. Add the GH repo as a push mirror for the Codeberg one
+2. Create a new runner in Codeberg
+3. Copy the the new runner's UUID and token and put them in GH action secrets called `RUNNER_UUID` and `RUNNER_TOKEN` respectively
+4. Copy the whole `.github` folder from this repo to yours
+5. In your Forgejo workflows specify that they run on `gh-ubuntu-latest`
