@@ -13,6 +13,7 @@ currently this repo supports:
 # Steps
 1. Add the GH repo as a push mirror for the Codeberg one
 2. Create a new runner in Codeberg
-3. Copy the the new runner's UUID and token and put them in GH action secrets called `RUNNER_UUID` and `RUNNER_TOKEN` respectively
+3. Copy the the new runner's UUID and token and put them in GH action secrets called `UBUNTU_LATEST_RUNNER_UUID` and `UBUNTU_LATEST_RUNNER_TOKEN` respectively
+- repeat steps `2` and `3` for `WINDOWS_LATEST_RUNNER_UUID` and `WINDOWS_LATEST_RUNNER_TOKEN` (with a different runner)
 4. Copy the whole `.github` folder from this repo to yours
 5. In your Forgejo workflows specify that they run on `gh-ubuntu-latest`/`gh-windows-latest`
