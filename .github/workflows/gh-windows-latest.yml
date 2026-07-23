@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.local/bin/forgejo-runner.exe
-          key: forgejo-runner-${{ steps.runner-version.outputs.version }}
+          key: forgejo-runner-windows-latest-${{ steps.runner-version.outputs.version }}
 
       - name: Actions cache restore
         uses: actions/cache/restore@v6
