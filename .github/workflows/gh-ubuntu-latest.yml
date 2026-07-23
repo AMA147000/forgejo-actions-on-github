@@ -39,7 +39,7 @@ jobs:
           RUNNER_VERSION: ${{ steps.runner-version.outputs.version }}
         run: |
           mkdir -p ~/.local/bin
-          wget -O ~/.local/bin/forgejo-runner \
+          curl -L -o ~/.local/bin/forgejo-runner \
             https://code.forgejo.org/forgejo/runner/releases/download/v${RUNNER_VERSION}/forgejo-runner-${RUNNER_VERSION}-linux-${ARCH}
           chmod +x ~/.local/bin/forgejo-runner
 
@@ -47,6 +47,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          mkdir -p ~/.cache
+
           gh api \
             -H "Accept: application/vnd.github.raw" \
             /repos/${{ github.repository }}/contents/.github/ubuntu-latest-config.yml?ref=${{ github.ref }} \

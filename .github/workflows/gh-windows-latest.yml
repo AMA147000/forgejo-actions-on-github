@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.local/bin
-          wget -O ~/.local/bin/forgejo-runner.exe \
+          curl -L -o ~/.local/bin/forgejo-runner.exe \
             https://github.com/Crown0815/Forgejo-runner-windows-builder/releases/download/${RUNNER_VERSION}/forgejo-runner-windows-${ARCH}.exe
 
       - name: Create runner config
@@ -49,6 +49,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
+          mkdir -p ~/.cache
+
           gh api \
             -H "Accept: application/vnd.github.raw" \
             /repos/${{ github.repository }}/contents/.github/gh-windows-latest-config.yml?ref=${{ github.ref }} \
