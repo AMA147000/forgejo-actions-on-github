@@ -1,4 +1,4 @@
-name: Forgejo Actions Runner
+name: Forgejo Actions Ubuntu Latest Runner
 
 on:
   push:
@@ -29,8 +29,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.cache/forgejo-runner
-          key: actions-cache-
-          restore-keys: actions-cache-
+          key: actions-cache-ubuntu-latest-
+          restore-keys: actions-cache-ubuntu-latest-
 
       - name: Download runner
         if: steps.runner-cache-restore.outputs.cache-hit != 'true'
@@ -47,22 +47,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p ~/.cache/forgejo-runner
-
           gh api \
             -H "Accept: application/vnd.github.raw" \
-            /repos/${{ github.repository }}/contents/.github/runner-config.yml?ref=${{ github.ref }} \
-            > ~/.cache/forgejo-runner/config.yml
+            /repos/${{ github.repository }}/contents/.github/ubuntu-latest-config.yml?ref=${{ github.ref }} \
+            > ~/.cache/forgejo-runner-config.yml
 
           sed -i -e "s/SECRETS_RUNNER_UUID/${{ secrets.RUNNER_UUID }}/g" \
             -e "s/SECRETS_RUNNER_TOKEN/${{ secrets.RUNNER_TOKEN }}/g" \
-            ~/.cache/forgejo-runner/config.yml
+            ~/.cache/forgejo-runner-config.yml
 
       - name: Run one job
         id: run-one-job
         run: |
           EXIT_CODE=0
-          forgejo-runner one-job --config ~/.cache/forgejo-runner/config.yml || EXIT_CODE=$?
+          forgejo-runner one-job --config ~/.cache/forgejo-runner-config.yml || EXIT_CODE=$?
 
           if [ $EXIT_CODE -eq 2 ]; then
             echo "no jobs in queue, exiting..."
@@ -82,13 +80,13 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: ~/.cache/forgejo-runner
-          key: actions-cache-${{ github.run_id }}
+          key: actions-cache-ubuntu-latest-${{ github.run_id }}
 
       - name: Runner cache save
         uses: actions/cache/save@v6
         with:
           path: ~/.local/bin/forgejo-runner
-          key: forgejo-runner-v${{ steps.runner-version.outputs.version }}
+          key: forgejo-runner-ubuntu-latest-v${{ steps.runner-version.outputs.version }}
 
       - name: Spin up next runner
         if: steps.run-one-job.outputs.spawn-next == 'true'

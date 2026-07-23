@@ -8,26 +8,36 @@ on:
 
 jobs:
   echo-test:
-    runs-on: gh-ubuntu-latest
+    strategy:
+        matrix:
+          os: [gh-ubuntu-latest, gh-windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - run: echo "echo test successful!"
 
   cache-save-test:
-    runs-on: gh-ubuntu-latest
+    strategy:
+        matrix:
+          os: [gh-ubuntu-latest, gh-windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Write test text to test.txt
+        shell: bash
         run: echo ${{ github.run_id }} > ./test.txt
 
       - name: Save test.txt cache
         uses: actions/cache/save@v6
         with:
           path: ./test.txt
-          key: test-cache-${{ github.run_id }}
+          key: test-cache-${{ matrix.os }}-${{ github.run_id }}
 
   cache-restore-test:
-    runs-on: gh-ubuntu-latest
+    strategy:
+        matrix:
+          os: [gh-ubuntu-latest, gh-windows-latest]
+    runs-on: ${{ matrix.os }}
     needs: cache-save-test
 
     steps:
@@ -35,9 +45,10 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ./test.txt
-          key: test-cache-${{ github.run_id }}
+          key: test-cache-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Read test.txt test text
+        shell: bash
         run: |
           if [ "$(cat ./test.txt)" != "${{ github.run_id }}" ]; then
               echo "cache test failed"
