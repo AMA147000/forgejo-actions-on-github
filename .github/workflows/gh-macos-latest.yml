@@ -35,7 +35,7 @@ jobs:
       - name: Download runner
         if: steps.runner-cache-restore.outputs.cache-hit != 'true'
         env:
-          ARCH: "amd64"
+          ARCH: "arm64"
           RUNNER_VERSION: ${{ steps.runner-version.outputs.version }}
         shell: bash
         run: |

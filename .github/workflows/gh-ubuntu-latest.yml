@@ -40,7 +40,7 @@ jobs:
         run: |
           mkdir -p ~/.forgejo-runner
           curl -L -o ~/.forgejo-runner/runner \
-            https://code.forgejo.org/forgejo/runner/releases/download/v${RUNNER_VERSION}/forgejo-runner-${RUNNER_VERSION}-linux-${ARCH}
+            https://code.forgejo.org/forgejo/runner/releases/download/${RUNNER_VERSION}/forgejo-runner-${RUNNER_VERSION#v}-linux-${ARCH}
           chmod +x ~/.forgejo-runner/runner
 
       - name: Create runner config
