@@ -10,7 +10,7 @@ jobs:
   echo-test:
     strategy:
         matrix:
-          os: [gh-ubuntu-latest, gh-windows-latest]
+          os: [gh-ubuntu-latest, gh-windows-latest, gh-macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -19,7 +19,7 @@ jobs:
   cache-save-test:
     strategy:
         matrix:
-          os: [gh-ubuntu-latest, gh-windows-latest]
+          os: [gh-ubuntu-latest, gh-windows-latest, gh-macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -36,7 +36,7 @@ jobs:
   cache-restore-test:
     strategy:
         matrix:
-          os: [gh-ubuntu-latest, gh-windows-latest]
+          os: [gh-ubuntu-latest, gh-windows-latest, gh-macos-latest]
     runs-on: ${{ matrix.os }}
     needs: cache-save-test
 

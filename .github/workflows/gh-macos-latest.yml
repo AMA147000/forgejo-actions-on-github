@@ -1,0 +1,104 @@
+name: Forgejo Actions macos Latest Runner
+
+on:
+  push:
+  schedule:
+    - cron: "0 0 * * *" # every day
+  workflow_dispatch:
+
+jobs:
+  spin-up-runner:
+    runs-on: macos-latest
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Get latest runner version
+        id: runner-version
+        run: echo "version=$(curl -sL "https://api.github.com/repos/AMA147000/forgejo-runner-macos-builder/releases/latest" | jq -r ".tag_name")" >> "$GITHUB_OUTPUT"
+
+      - name: Runner cache restore
+        id: runner-cache-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.local/bin/forgejo-runner
+          key: forgejo-runner-macos-latest-${{ steps.runner-version.outputs.version }}
+
+      - name: Actions cache restore
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/forgejo-runner
+          key: actions-cache-macos-latest-
+          restore-keys: actions-cache-macos-latest-
+
+      - name: Download runner
+        if: steps.runner-cache-restore.outputs.cache-hit != 'true'
+        env:
+          ARCH: "amd64"
+          RUNNER_VERSION: ${{ steps.runner-version.outputs.version }}
+        shell: bash
+        run: |
+          mkdir -p ~/.local/bin
+          curl -L -o ~/.local/bin/forgejo-runner \
+            https://github.com/AMA147000/forgejo-runner-macos-builder/releases/download/${RUNNER_VERSION}/forgejo-runner-macos-${ARCH}
+          chmod +x ~/.local/bin/forgejo-runner
+
+      - name: Create runner config
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ~/.cache
+
+          gh api \
+            -H "Accept: application/vnd.github.raw" \
+            /repos/${{ github.repository }}/contents/.github/gh-macos-latest-config.yml?ref=${{ github.ref }} \
+            > ~/.cache/forgejo-runner-config.yml
+
+          sed -i '' -e "s/SECRETS_RUNNER_UUID/${{ secrets.macos_LATEST_RUNNER_UUID }}/g" \
+            -e "s/SECRETS_RUNNER_TOKEN/${{ secrets.macos_LATEST_RUNNER_TOKEN }}/g" \
+            ~/.cache/forgejo-runner-config.yml
+
+      - name: Run one job
+        id: run-one-job
+        run: |
+          EXIT_CODE=0
+          forgejo-runner one-job --config ~/.cache/forgejo-runner-config.yml || EXIT_CODE=$?
+
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "no jobs in queue, exiting..."
+            exit 0
+          fi
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "runner encountered an error (code: $EXIT_CODE), aborting..."
+            exit 1
+          fi
+
+          echo "finished successfully, spinning up the next runner..."
+          echo "spawn-next=true" >> "$GITHUB_OUTPUT"
+
+      # Split the restoring and saving of the cache so that the save happens before the next runner is spun up
+      - name: Actions cache save
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cache/forgejo-runner
+          key: actions-cache-macos-latest-${{ github.run_id }}
+
+      - name: Runner cache save
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.local/bin/forgejo-runner
+          key: forgejo-runner-macos-latest-${{ steps.runner-version.outputs.version }}
+
+      - name: Spin up next runner
+        if: steps.run-one-job.outputs.spawn-next == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FILE_PATH="${GITHUB_WORKFLOW_REF%@*}"
+          FILE_NAME="${FILE_PATH##*/}"
+
+          gh workflow run "$FILE_NAME" \
+            -R "${{ github.repository }}" \
+            --ref "${{ github.ref_name }}"
