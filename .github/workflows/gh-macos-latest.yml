@@ -22,13 +22,13 @@ jobs:
         id: runner-cache-restore
         uses: actions/cache/restore@v6
         with:
-          path: ~/.local/bin/forgejo-runner
+          path: ~/.forgejo-runner/runner
           key: forgejo-runner-macos-latest-${{ steps.runner-version.outputs.version }}
 
       - name: Actions cache restore
         uses: actions/cache/restore@v6
         with:
-          path: ~/.cache/forgejo-runner
+          path: ~/.forgejo-runner/cache
           key: actions-cache-macos-latest-
           restore-keys: actions-cache-macos-latest-
 
@@ -39,31 +39,31 @@ jobs:
           RUNNER_VERSION: ${{ steps.runner-version.outputs.version }}
         shell: bash
         run: |
-          mkdir -p ~/.local/bin
-          curl -L -o ~/.local/bin/forgejo-runner \
+          mkdir -p ~/.forgejo-runner
+          curl -L -o ~/.forgejo-runner/runner \
             https://github.com/AMA147000/forgejo-runner-macos-builder/releases/download/${RUNNER_VERSION}/forgejo-runner-macos-${ARCH}
-          chmod +x ~/.local/bin/forgejo-runner
+          chmod +x ~/.forgejo-runner/runner
 
       - name: Create runner config
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p ~/.cache
+          mkdir -p ~/.forgejo-runner
 
           gh api \
             -H "Accept: application/vnd.github.raw" \
             /repos/${{ github.repository }}/contents/.github/gh-macos-latest-config.yml?ref=${{ github.ref }} \
-            > ~/.cache/forgejo-runner-config.yml
+            > ~/.forgejo-runner/config.yml
 
           sed -i '' -e "s/SECRETS_RUNNER_UUID/${{ secrets.macos_LATEST_RUNNER_UUID }}/g" \
             -e "s/SECRETS_RUNNER_TOKEN/${{ secrets.macos_LATEST_RUNNER_TOKEN }}/g" \
-            ~/.cache/forgejo-runner-config.yml
+            ~/.forgejo-runner/config.yml
 
       - name: Run one job
         id: run-one-job
         run: |
           EXIT_CODE=0
-          forgejo-runner one-job --config ~/.cache/forgejo-runner-config.yml || EXIT_CODE=$?
+          ~/.forgejo-runner/runner one-job --config ~/.forgejo-runner/config.yml || EXIT_CODE=$?
 
           if [ $EXIT_CODE -eq 2 ]; then
             echo "no jobs in queue, exiting..."
@@ -82,13 +82,13 @@ jobs:
       - name: Actions cache save
         uses: actions/cache/save@v6
         with:
-          path: ~/.cache/forgejo-runner
+          path: ~/.forgejo-runner/cache
           key: actions-cache-macos-latest-${{ github.run_id }}
 
       - name: Runner cache save
         uses: actions/cache/save@v6
         with:
-          path: ~/.local/bin/forgejo-runner
+          path: ~/.forgejo-runner/runner
           key: forgejo-runner-macos-latest-${{ steps.runner-version.outputs.version }}
 
       - name: Spin up next runner

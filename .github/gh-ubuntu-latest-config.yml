@@ -114,7 +114,7 @@ cache:
   #
   # If empty, the cache data will be stored in $HOME/.cache/actcache.
   #
-  dir: "/home/runner/.cache/forgejo-runner"
+  dir: "/home/runner/.forgejo-runner/cache"
   #
   #######################################################################
   #
