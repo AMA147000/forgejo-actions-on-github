@@ -16,14 +16,14 @@ jobs:
     steps:
       - name: Get latest runner version
         id: runner-version
-        run: echo "version=$(curl -X 'GET' https://data.forgejo.org/api/v1/repos/forgejo/runner/releases/latest | jq .name -r | cut -c 2-)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(curl -sL "https://data.forgejo.org/api/v1/repos/forgejo/runner/releases/latest" | jq -r ".tag_name")" >> "$GITHUB_OUTPUT"
 
       - name: Runner cache restore
         id: runner-cache-restore
         uses: actions/cache/restore@v6
         with:
           path: ~/.local/bin/forgejo-runner
-          key: forgejo-runner-ubuntu-latest-v${{ steps.runner-version.outputs.version }}
+          key: forgejo-runner-ubuntu-latest-${{ steps.runner-version.outputs.version }}
 
       - name: Actions cache restore
         uses: actions/cache/restore@v6
@@ -88,7 +88,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: ~/.local/bin/forgejo-runner
-          key: forgejo-runner-ubuntu-latest-v${{ steps.runner-version.outputs.version }}
+          key: forgejo-runner-ubuntu-latest-${{ steps.runner-version.outputs.version }}
 
       - name: Spin up next runner
         if: steps.run-one-job.outputs.spawn-next == 'true'
