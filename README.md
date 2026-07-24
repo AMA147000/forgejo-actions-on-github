@@ -7,7 +7,7 @@ Of course this method is not perfect as if for example the Forgejo action was ca
 currently this repo supports:
 - `ubuntu-latest`: through the official [forgejo/runner](https://code.forgejo.org/forgejo/runner) repo
 - `windows-latest`: through the amazing [Crown0815/Forgejo-runner-windows-builder](https://github.com/Crown0815/Forgejo-runner-windows-builder) repo
-- `macos-latest`: through my [AMA147000/forgejo-runner-macos-builder](https://github.com/AMA147000/forgejo-runner-macos-builder) repo
+- `macos-latest`: through my [AMA147000/forgejo-runner-macos-builder](https://github.com/AMA147000/forgejo-runner-macos-builder) repo ;)
 
 *If you want to disable one of the OSs, simply remove its workflow and config from the `.github` folder.*
 

@@ -1,4 +1,4 @@
-name: Forgejo Actions macos Latest Runner
+name: Forgejo Actions macOS Latest Runner
 
 on:
   push:
