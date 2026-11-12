@@ -25,13 +25,13 @@ jobs:
     steps:
       - name: Write test text to test.txt
         shell: bash
-        run: echo ${{ github.run_id }} > ./test.txt
+        run: echo ${{ forgejo.run_id }} > ./test.txt
 
       - name: Save test.txt cache
         uses: actions/cache/save@v6
         with:
           path: ./test.txt
-          key: test-cache-${{ matrix.os }}-${{ github.run_id }}
+          key: test-cache-${{ matrix.os }}-${{ forgejo.run_id }}
 
   cache-restore-test:
     strategy:
@@ -45,12 +45,12 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ./test.txt
-          key: test-cache-${{ matrix.os }}-${{ github.run_id }}
+          key: test-cache-${{ matrix.os }}-${{ forgejo.run_id }}
 
       - name: Read test.txt test text
         shell: bash
         run: |
-          if [ "$(cat ./test.txt)" != "${{ github.run_id }}" ]; then
+          if [ "$(cat ./test.txt)" != "${{ forgejo.run_id }}" ]; then
               echo "cache test failed"
               exit 1
           fi
