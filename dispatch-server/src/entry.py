@@ -20,7 +20,7 @@ class Default(WorkerEntrypoint):
         body = await request.json()
 
         repo_map = json.loads(self.env.FORGEJO_GITHUB_REPO_MAP)
-        repo_name = body.get("repository").get("full_name")
+        repo_name = body.get("run").get("repository").get("full_name")
         target_repo = repo_map.get(repo_name)
         if not target_repo:
             return Response(f"Ignored (unmapped repo: {repo_name})", status=200)
@@ -42,7 +42,7 @@ class Default(WorkerEntrypoint):
                     "User-Agent": "dispatcher-server",
                     "Content-Type": "application/json",
                 },
-                body=json.dumps({"ref": body.get("repository").get("default_branch")}),
+                body=json.dumps({"ref": body.get("run").get("repository").get("default_branch")}),
             )
 
             if not gh_response.ok:
