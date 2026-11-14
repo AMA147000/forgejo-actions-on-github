@@ -1,16 +1,12 @@
 name: Forgejo Actions Windows Latest Runner
 
 on:
-  push:
-  schedule:
-    - cron: "0 0 * * *" # every day
   workflow_dispatch:
 
 jobs:
   spin-up-runner:
     runs-on: windows-latest
     permissions:
-      actions: write
       contents: read
 
     steps:
@@ -19,22 +15,22 @@ jobs:
         shell: bash
         run: echo "version=$(curl -sL "https://api.github.com/repos/Crown0815/Forgejo-runner-windows-builder/releases/latest" | jq -r ".tag_name")" >> "$GITHUB_OUTPUT"
 
-      - name: Runner cache restore
-        id: runner-cache-restore
-        uses: actions/cache/restore@v6
+      - name: Runner binary cache
+        id: runner-binary-cache
+        uses: actions/cache@v6
         with:
           path: ~/.forgejo-runner/runner.exe
           key: forgejo-runner-windows-latest-${{ steps.runner-version.outputs.version }}
 
-      - name: Actions cache restore
-        uses: actions/cache/restore@v6
+      - name: Actions cache cache (lol)
+        uses: actions/cache@v6
         with:
           path: ~/.forgejo-runner/cache
-          key: actions-cache-windows-latest-
+          key: actions-cache-windows-latest-${{ github.run_id }}
           restore-keys: actions-cache-windows-latest-
 
       - name: Download runner
-        if: steps.runner-cache-restore.outputs.cache-hit != 'true'
+        if: steps.runner-binary-cache.outputs.cache-hit != 'true'
         env:
           ARCH: "amd64"
           RUNNER_VERSION: ${{ steps.runner-version.outputs.version }}
@@ -61,7 +57,6 @@ jobs:
             ~/.forgejo-runner/config.yml
 
       - name: Run one job
-        id: run-one-job
         shell: bash
         run: |
           EXIT_CODE=0
@@ -77,31 +72,4 @@ jobs:
             exit 1
           fi
 
-          echo "finished successfully, spinning up the next runner..."
-          echo "spawn-next=true" >> "$GITHUB_OUTPUT"
-
-      # Split the restoring and saving of the cache so that the save happens before the next runner is spun up
-      - name: Actions cache save
-        uses: actions/cache/save@v6
-        with:
-          path: ~/.forgejo-runner/cache
-          key: actions-cache-windows-latest-${{ github.run_id }}
-
-      - name: Runner cache save
-        uses: actions/cache/save@v6
-        with:
-          path: ~/.forgejo-runner/runner.exe
-          key: forgejo-runner-windows-latest-${{ steps.runner-version.outputs.version }}
-
-      - name: Spin up next runner
-        if: steps.run-one-job.outputs.spawn-next == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          FILE_PATH="${GITHUB_WORKFLOW_REF%@*}"
-          FILE_NAME="${FILE_PATH##*/}"
-
-          gh workflow run "$FILE_NAME" \
-            -R "${{ github.repository }}" \
-            --ref "${{ github.ref_name }}"
+          echo "finished successfully"
