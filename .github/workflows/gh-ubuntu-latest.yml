@@ -15,11 +15,21 @@ jobs:
         run: echo "version=$(curl -sL "https://data.forgejo.org/api/v1/repos/forgejo/runner/releases/latest" | jq -r ".tag_name")" >> "$GITHUB_OUTPUT"
 
       - name: Runner binary cache
+        if: steps.runner-version.outputs.version != 'null'
         id: runner-binary-cache
         uses: actions/cache@v6
         with:
           path: ~/.forgejo-runner/runner
           key: forgejo-runner-ubuntu-latest-${{ steps.runner-version.outputs.version }}
+
+      - name: Runner binary restore
+        if: steps.runner-version.outputs.version == 'null'
+        id: runner-binary-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.forgejo-runner/runner
+          key: forgejo-runner-ubuntu-latest-
+          restore-keys: forgejo-runner-ubuntu-latest-
 
       - name: Actions cache cache (lol)
         uses: actions/cache@v6
@@ -29,11 +39,15 @@ jobs:
           restore-keys: actions-cache-ubuntu-latest-
 
       - name: Download runner
-        if: steps.runner-binary-cache.outputs.cache-hit != 'true'
+        if: steps.runner-binary-cache.outputs.cache-hit != 'true' && steps.runner-binary-restore.outputs.cache-hit != 'true'
         env:
           ARCH: "amd64"
           RUNNER_VERSION: ${{ steps.runner-version.outputs.version }}
         run: |
+          if [ "$RUNNER_VERSION" = "null" ]; then
+            RUNNER_VERSION="v13.0.0"
+          fi
+
           mkdir -p ~/.forgejo-runner
           curl -L -o ~/.forgejo-runner/runner \
             https://code.forgejo.org/forgejo/runner/releases/download/${RUNNER_VERSION}/forgejo-runner-${RUNNER_VERSION#v}-linux-${ARCH}
